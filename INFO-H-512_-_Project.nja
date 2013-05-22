@@ -1,0 +1,6 @@
+{
+  "venv": "", 
+  "name": "INFO-H-512 - Project", 
+  "license": "GNU General Public License v3", 
+  "description": "Sentiment analysis on Twitter."
+}
