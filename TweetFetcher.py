@@ -4,11 +4,9 @@ import getopt
 import sys
 import tweepy
 #import TweetGatherer
-from pattern.en import tag
-import re
-import json
-#import twitter
-import pprint
+import pattern.en
+import time
+#import pprint
 
 #Username: oject_
 #Password: iridia
@@ -25,16 +23,14 @@ TRIM_USER = True
 INCLUDE_ENTITIES = True
 EXCLUDE_REPLIES = True
 PAGES = 20
+USERNAME = "oject_"
 
 def main():
+    searchQuery = None
     screenName = None
     global _verbose
     _verbose = 1
-    searchQuery = None
-    #hashtagRE ="#[0-9A-Za-z_!?]*\s"
-    #screenNameRE = "@[0-9A-Za-z_!?]*\s"
-    #URLRE ="(https?\/\/)?([0-9a-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)*\/?"
-    #mailAddressRE="([0-9A-Za-z_\.-]+)@([0-9A-Za-z_\.-]+)([a-z\.]{2,6})"
+
 
     try:
         shortflags = 'hs:u:q'
@@ -57,8 +53,6 @@ def main():
         elif opt in ("-u", "--user_timeline"):
             screenName = arg
 
-    source = "".join(args)
-
     if screenName is None and searchQuery is None:
         sys.stderr.write("\n[ERROR] - No search mode chosen!\n\n")
         usage()
@@ -71,7 +65,7 @@ def main():
 
     print '''
     ###########################################################################
-    #                            TweetGatherer 1.0                            #
+    #                            TweetFetcher 1.0                             #
     ###########################################################################
     '''
 
@@ -84,14 +78,18 @@ def main():
     auth.set_access_token(access_token, access_token_secret)
     twitterAPI = tweepy.API(auth)
 
-    if _verbose == 1:
+    if auth.get_username() == USERNAME:
         print ("[STATUS] - Authentication successful as " + auth.get_username() + "!\n")
+        displayRateLimits(twitterAPI.rate_limit_status())
+    else:
+        sys.stderr.write("[STATUS] - Authentication failed!\n")
+        sys.exit(2)
 
     if screenName is not None and searchQuery is None:
         filenameTweets = str(screenName + ".tweets")
         filenameFiltered = str(screenName + ".filtered")
 
-    if screenName is not None and searchQuery is None:
+    if screenName is None and searchQuery is not None:
         filenameTweets = str(searchQuery + ".tweets")
         filenameFiltered = str(searchQuery + ".filtered")
 
@@ -145,7 +143,7 @@ def main():
     #Tweet filtering
     for status in statusList:
         relevantInformations = filterTweet(status)
-        splitRelevantIrrelevant(relevantInformations[u'filtered_text'])
+        #splitRelevantIrrelevant(relevantInformations[u'filtered_text'])
         tweetsFile.write(relevantInformations[u'text'].encode("utf8") + "\n")
         filteredTweetsFile.write(relevantInformations[u'filtered_text'].encode("utf8") + "\n")
 
@@ -154,16 +152,6 @@ def main():
 
     tweetsFile.close()
     filteredTweetsFile.close()
-
-    #
-
-    #TweetGatherer(screenName,api)
-
-    #TWEEPY AUTHENTICATION
-    #auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    #auth.set_access_token(access_token, access_token_secret)
-
-    #api = tweepy.API(auth)
 
     ## If the authentication was successful, you should
     ## see the name of the account print out
@@ -245,16 +233,34 @@ def splitRelevantIrrelevant(tweetContent):
     relevantWords = []
     irrelevantWords = []
 
+    # [Optional] - Pretty print of the JSON
+    #pp = pprint.PrettyPrinter(indent=4)
+    #pp.pprint(decodedObject)
+    #print("\n\n")
+
     #P-O-S Tagging and separation of the word into relevant and irrelevant set for the analysis
-    for word, wordTag in tag(tweetContent, light=True):
+    for word, tag in pattern.en.parse(tweetContent, tokenize=True, encoding='utf-8', light=True):
         #Retrieve all the nouns, proper nouns and adjectives from the tweet
-        if wordTag in("NN", "NNS", "NNP", "NNPS", "JJ"):
+        if tag in("NN", "NNS", "NNP", "NNPS", "JJ"):
             relevantWords.append(word)
         else:
             irrelevantWords.append()
 
     print ("Relevant words: " + str(relevantWords))
 
+
+def displayRateLimits(JSONReponse):
+    print("[LIMITS] - 15 minutes time windows\n")
+    userTimelineLimits = JSONReponse["resources"]["statuses"]["/statuses/user_timeline"]
+    print("[LIMITS] - [User Timeline]")
+    print("\tRemaining requests: " + str(userTimelineLimits["remaining"]))
+    print("\tReset at " + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(userTimelineLimits["reset"])) + "\n")
+
+    searchLimits = JSONReponse["resources"]["search"]["/search/tweets"]
+    print("[LIMITS] - [Search]")
+    print("\tRemaining requests: " + str(searchLimits["remaining"]))
+    print("\tReset at " + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(searchLimits["reset"])) + "\n")
+    return
 
 
 if __name__ == "__main__":
