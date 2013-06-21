@@ -4,7 +4,6 @@ import getopt
 import sys
 import tweepy
 #import TweetGatherer
-import pattern.en
 import time
 #import pprint
 
@@ -22,7 +21,7 @@ INCLUDE_RTS = False
 TRIM_USER = True
 INCLUDE_ENTITIES = True
 EXCLUDE_REPLIES = True
-PAGES = 20
+PAGES = 30
 USERNAME = "oject_"
 
 def main():
@@ -31,6 +30,11 @@ def main():
     global _verbose
     _verbose = 1
 
+    print '''
+    ###########################################################################
+    #                            TweetFetcher 1.0                             #
+    ###########################################################################
+    '''
 
     try:
         shortflags = 'hs:u:q'
@@ -62,12 +66,6 @@ def main():
         sys.stderr.write("\n[ERROR] - Multiple search mode chosen!\n\n")
         usage()
         sys.exit(2)
-
-    print '''
-    ###########################################################################
-    #                            TweetFetcher 1.0                             #
-    ###########################################################################
-    '''
 
     # First perform the twitter authentication
     consumer_key = "XVTXB2htK3FijPZ8w5g2cQ"
@@ -142,7 +140,6 @@ def main():
     #Tweet filtering
     for status in statusList:
         relevantInformations = filterTweet(status)
-        print relevantInformations
         #splitRelevantIrrelevant(relevantInformations[u'filtered_text'])
         tweetsFile.write(relevantInformations[u'text'].encode("utf8") + "\n")
         filteredTweetsFile.write(relevantInformations[u'filtered_text'].encode("utf8") + "\n")
@@ -162,7 +159,7 @@ def main():
 
 
 def usage():
-    USAGE = '''Usage: TweetFetcher [PARAMETERS] -s [SCREEN_NAME]
+    USAGE = '''Usage: TweetFetcher [PARAMETERS] -s [SEARCH_QUERY] | -u [SCREEN_NAME]
 
   This script is a command-line interface to the twitter Search REST API.
 
@@ -232,26 +229,6 @@ def filterTweet(status):
     relevantInformations[u'created_at'] = status.created_at
 
     return relevantInformations
-
-def splitRelevantIrrelevant(tweetContent):
-    relevantWords = []
-    irrelevantWords = []
-
-    # [Optional] - Pretty print of the JSON
-    #pp = pprint.PrettyPrinter(indent=4)
-    #pp.pprint(decodedObject)
-    #print("\n\n")
-
-    #P-O-S Tagging and separation of the word into relevant and irrelevant set for the analysis
-    for word, tag in pattern.en.parse(tweetContent, tokenize=True, encoding='utf-8', light=True):
-        #Retrieve all the nouns, proper nouns and adjectives from the tweet
-        if tag in("NN", "NNS", "NNP", "NNPS", "JJ"):
-            relevantWords.append(word)
-        else:
-            irrelevantWords.append()
-
-    print ("Relevant words: " + str(relevantWords))
-
 
 def displayRateLimits(JSONReponse):
     print("[LIMITS] - 15 minutes time windows\n")

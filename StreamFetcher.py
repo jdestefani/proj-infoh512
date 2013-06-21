@@ -1,3 +1,6 @@
+__authors__ = 'Jacopo De Stefani (jacopo.de.stefani@ulb.ac.be)\n    Nadine Khouzam (nadine.khouzam@ulb.ac.be)\n'
+
+
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -13,38 +16,38 @@ LANG = "en"
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Retrieves the tweets matching the queries passed as parameters using Streaming API.')
-    parser.add_argument('queries', metavar='queries', type=str, nargs='+',
-                         help='Queries to pass to the streaming API')
-    searchQuery = parser.parse_args()
-
     print '''
     ###########################################################################
     #                            StreamFetcher 1.0                            #
     ###########################################################################
     '''
 
+    if len(sys.argv) == 1:
+        usage()
+        sys.exit(2)
+
+
     consumer_key = "XVTXB2htK3FijPZ8w5g2cQ"
     consumer_secret = "V439XDFqiiVFAECLuiH0zElMcFurlBDRAFPcAPMpbs"
     access_token = "1525178712-nDcycRs7XqNHoHIMI9JhS14OsDF8ErLfG0wbNGX"
     access_token_secret = "jYNsqWN0pN0EulJUIGdhwxxtd0U3rHiKnZaFogEr6Y"
 
-    l = FileListener()
+    l = FileListener(100)
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
     stream = Stream(auth, l)
-    stream.filter(track=["Nba, Finals,#Heat,#Spurs,#LBJ"],languages=["en"])
-    #stream.filter(track=["Windows8,#Windows8,Surface"])
+    #stream.filter(track=["Nba, Finals,#Heat,#Spurs,#LBJ"],languages=["en"])
+    stream.filter(track=sys.argv[1:],languages=["en"])
 
 class FileListener(StreamListener):
-    FLUSH_THRESHOLD = 1000
     """ A listener handles tweets are the received from the stream.
     This is a basic listener that just prints received tweets to stdout.
     """
 
-    def __init__(self):
+    def __init__(self,flush_threshold):
         self.JSONDataList = []
+        self.FLUSH_THRESHOLD = flush_threshold
         try:
             basicFilename = "Stream"+ strftime("%d-%m-%Y %H:%M:%S", gmtime())
             self.timesFile = open(str(basicFilename) + ".times", "w+")
@@ -169,6 +172,21 @@ class FileListener(StreamListener):
         relevantInformations[u'created_at'] = JSONData[u'created_at']
 
         return relevantInformations
+
+def usage():
+    USAGE = '''Usage: StreamFetcher [QUERIES]
+
+    This script is a command-line interface to the twitter Streaming API.
+    The values passed as queries are composed using the OR operator to build the final query.
+    The characters # must be escaped.
+
+    This is free software, and you are welcome to redistribute it under certain conditions.
+    See the GNU General Public License for details.
+    There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    AUTHORS:
+    '''
+    print(USAGE+__authors__)
 
 
 
