@@ -131,8 +131,7 @@ def main():
 
         for page in tweepy.Cursor(twitterAPI.search, q=searchQuery, lang=LANG, include_entities=INCLUDE_ENTITIES, count=COUNT).pages(PAGES):
             for status in page:
-                for status in page:
-                    statusList.append(status)
+                statusList.append(status)
             if _verbose == 1:
                 print ("[STATUS] - Fetched page " + str(i) + " out of " + str(PAGES) + "\n")
             i = i + 1
@@ -143,9 +142,11 @@ def main():
     #Tweet filtering
     for status in statusList:
         relevantInformations = filterTweet(status)
+        print relevantInformations
         #splitRelevantIrrelevant(relevantInformations[u'filtered_text'])
         tweetsFile.write(relevantInformations[u'text'].encode("utf8") + "\n")
         filteredTweetsFile.write(relevantInformations[u'filtered_text'].encode("utf8") + "\n")
+
 
     if _verbose == 1:
         print ("[STATUS] - Completed tweet filtering")
@@ -161,15 +162,18 @@ def main():
 
 
 def usage():
-    USAGE = '''Usage: TweetGatherer [PARAMETERS] -s [SCREEN_NAME]
+    USAGE = '''Usage: TweetFetcher [PARAMETERS] -s [SCREEN_NAME]
 
-  This script extract the most important topics used by a company on its twitter account.
+  This script is a command-line interface to the twitter Search REST API.
 
   Options:
 
     -h --help : print this help
-    -s,--screen-name: Screen name of the user for which the topics should be extracted [Mandatory]
-    -q,--quiet: Non verbose output mode")
+    -q,--quiet: Non verbose output mode"
+
+  Required options (mutually exclusive):
+    -s,--search_query: Search query to be passed to the Search API to retrieve tweets.
+    -u,--user_timeline:  Screen name of the user for which the tweets should be retrieved.
 
     This is free software, and you are welcome to redistribute it under certain conditions.
     See the GNU General Public License for details.
