@@ -1,3 +1,4 @@
+library("wordcloud")
 #Read command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 statsFile <- args[1]
@@ -8,7 +9,7 @@ rm(args)
 #Read data from stats file
 inputData <- read.table(statsFile, header = TRUE)
 
-pdf(paste(inputFile,".pdf",sep=""))
+pdf(paste(statsFile,".pdf",sep=""))
 
 #Plot empirical CDF of tweet length
 graphTitle <- paste("Length CDF -",dim(inputData)[1],"tweets")
@@ -48,19 +49,19 @@ pie(moodTable, labels = labelList, col=rainbow(length(labelList)),
 dev.off()
 
 report <- data.frame()
-report["Polarity","Mean"] <- mean(inputData["Polarity"])
-report["Subjectivity","Mean"] <- mean(inputData["Subjectivity"])
-report["Polarity","Standard Deviation"] <- sd(inputData["Polarity"])
-report["Subjectivity","Standard Deviation"] <- sd(inputData["Subjectivity"])
-report["Polarity","Median"] <- median(inputData["Polarity"])
-report["Subjectivity","Median"] <- median(inputData["Subjectivity"])
-report["Polarity","Min"] <- min(inputData["Polarity"])
-report["Subjectivity","Min"] <- min(inputData["Subjectivity"])
-report["Polarity","Max"] <- max(inputData["Polarity"])
-report["Subjectivity","Max"] <- max(inputData["Subjectivity"])
+report["Polarity","Mean"] <- mean(inputData$Polarity)
+report["Subjectivity","Mean"] <- mean(inputData$Subjectivity)
+report["Polarity","Standard Deviation"] <- sd(inputData$Polarity)
+report["Subjectivity","Standard Deviation"] <- sd(inputData$Subjectivity)
+report["Polarity","Median"] <- median(inputData$Polarity)
+report["Subjectivity","Median"] <- median(inputData$Subjectivity)
+report["Polarity","Min"] <- min(inputData$Polarity)
+report["Subjectivity","Min"] <- min(inputData$Subjectivity)
+report["Polarity","Max"] <- max(inputData$Polarity)
+report["Subjectivity","Max"] <- max(inputData$Subjectivity)
 
 #Write reporting dataframe
-write.table(report, paste(inputFile,".summary",sep=""),sep="\t",row.names=TRUE,col.names=TRUE)
+write.table(report, paste(statsFile,".summary",sep=""),sep="\t",row.names=TRUE,col.names=TRUE)
 
 
 #Read data and compute errors for each cluster
@@ -68,11 +69,14 @@ wordsData <- read.table(wordsFile, header = TRUE)
 
 #Wordcloud - Style 1
 #png(paste(wordsFile,".cloud.png",sep=""), width=1280,height=800)
+#pal <- brewer.pal(9, "BuGn")
+#pal <- pal[-(1:2)]
 #wordcloud(wordsData$Words,wordsData$Frequency, scale=c(8,.3),min.freq=2,max.words=100, random.order=T, rot.per=.15, colors=pal, vfont=c("sans serif","plain"))
 #dev.off()
 
 #Wordcloud - Style 2
 png(paste(wordsFile,".cloud.png",sep=""), width=1280,height=800)
-wordcloud(wordsData$Words,wordsData$Frequency, scale=c(8,.2),min.freq=3,
+pal2 <- brewer.pal(8,"Dark2")
+wordcloud(wordsData$Word,wordsData$Frequency, scale=c(8,.2),min.freq=2,
           max.words=Inf, random.order=FALSE, rot.per=.15, colors=pal2)
 dev.off()

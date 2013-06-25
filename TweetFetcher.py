@@ -86,14 +86,16 @@ def main():
     if screenName is not None and searchQuery is None:
         filenameTweets = str(screenName + ".tweets")
         filenameFiltered = str(screenName + ".filtered")
+        filenameHashtags = str(screenName + ".ht")
 
     if screenName is None and searchQuery is not None:
         filenameTweets = str(searchQuery + ".tweets")
         filenameFiltered = str(searchQuery + ".filtered")
-
+        filenameHashtags = str(searchQuery + ".ht")
     try:
         tweetsFile = open(filenameTweets, "w+")
         filteredTweetsFile = open(filenameFiltered, "w+")
+        hashtagsFile = open(filenameHashtags, "w+")
     except IOError as e:
         sys.stderr.write(e)
         sys.stderr.write("\n[ERROR] - Error in opening files!")
@@ -143,7 +145,9 @@ def main():
         #splitRelevantIrrelevant(relevantInformations[u'filtered_text'])
         tweetsFile.write(relevantInformations[u'text'].encode("utf8") + "\n")
         filteredTweetsFile.write(relevantInformations[u'filtered_text'].encode("utf8") + "\n")
-
+        for hashtag in relevantInformations[u'hashtags']:
+            hashtagsFile.write(hashtag+"\t")
+        hashtagsFile.write("\n")
 
     if _verbose == 1:
         print ("[STATUS] - Completed tweet filtering")

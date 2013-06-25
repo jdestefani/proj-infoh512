@@ -32,27 +32,35 @@ def main():
     access_token = "1525178712-nDcycRs7XqNHoHIMI9JhS14OsDF8ErLfG0wbNGX"
     access_token_secret = "jYNsqWN0pN0EulJUIGdhwxxtd0U3rHiKnZaFogEr6Y"
 
-    l = FileListener(100)
+    l = FileListener(100,10000)
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
     stream = Stream(auth, l)
-    #stream.filter(track=["Nba, Finals,#Heat,#Spurs,#LBJ"],languages=["en"])
-    stream.filter(track=sys.argv[1:],languages=["en"])
+    stream.filter(track=["#CocaCola","Coca","cola","#Coke","Coca cola"],languages=["en"])
+    #stream.filter(track=sys.argv[1:],languages=["en"])
 
 class FileListener(StreamListener):
     """ A listener handles tweets are the received from the stream.
     This is a basic listener that just prints received tweets to stdout.
     """
 
-    def __init__(self,flush_threshold):
+    def __init__(self,flush_threshold,max_flushes):
         self.JSONDataList = []
         self.FLUSH_THRESHOLD = flush_threshold
+        self.flush_counter = 0
+        self.max_flushes = max_flushes
         try:
-            basicFilename = "Stream"+ strftime("%d-%m-%Y %H:%M:%S", gmtime())
+            basicFilename = "Stream" + strftime("%d-%m-%Y %H:%M:%S", gmtime())
             self.timesFile = open(str(basicFilename) + ".times", "w+")
             self.tweetsFile = open(str(basicFilename) + ".tweets", "w+")
             self.filteredTweetsFile = open(str(basicFilename) + ".filtered", "w+")
+            self.hashtagsFile = open(str(basicFilename) + ".ht", "w+")
+            print ("[STATUS] - File " + str(basicFilename+".tweets") + " opened\n ")
+            print ("[STATUS] - File " + str(basicFilename+".filtered") + " opened\n ")
+            print ("[STATUS] - File " + str(basicFilename+".times") + " opened\n ")
+            print ("[STATUS] - File " + str(basicFilename+".ht") + " opened \n ")
+
         except IOError as e:
             sys.stderr.write(e)
             sys.stderr.write("\n[ERROR] - Error in opening files!")
@@ -81,8 +89,16 @@ class FileListener(StreamListener):
                 self.timesFile.write(relevantInformations[u'created_at'].encode("utf8") + "\n")
                 self.tweetsFile.write(relevantInformations[u'text'].encode("utf8") + "\n")
                 self.filteredTweetsFile.write(relevantInformations[u'filtered_text'].encode("utf8") + "\n")
+                for hashtag in relevantInformations[u'hashtags']:
+                    self.hashtagsFile.write(hashtag.encode('utf8')+"\t")
+                self.hashtagsFile.write("\n")
             del self.JSONDataList[0:len(self.JSONDataList)]
             print ("[STATUS] - Ended flushing at " + strftime("%d-%m-%Y %H:%M:%S", gmtime()))
+            self.flush_counter = self.flush_counter + 1
+
+        if self.flush_counter > self.max_flushes:
+            return False
+
 
         if 'in_reply_to_status_id' in data:
             #status = Status.parse(self.api, json.loads(data))

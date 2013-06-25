@@ -9,14 +9,17 @@
           watermarkheightmult=6,% The watermark image is 4 times bigger
                                 % than watermarkheight.
           ]{Torino}
+
 \usepackage{epstopdf}
-\usepackage{natbib}
 \usepackage{spverbatim}
 \usepackage{tikz}
+\usepackage{pgfpages}
+\usepackage{hyperref}
+
 \usetikzlibrary{arrows,automata,shadows}
 % Nouvelle is a green and red alternative to the chameleon color theme.
 \usecolortheme{nouvelle}
-\logo{\includegraphics[height=1cm]{UlbLogos/ULBPolytech.eps}}
+\logo{\includegraphics[height=1cm,scale=0.6]{UlbLogos/ULBPolytech.eps}}
 
 \pgfdeclarelayer{background}
 \pgfdeclarelayer{foreground}
@@ -53,11 +56,13 @@
       {\scriptsize\textit{#5 Tier}};
   \end{pgfonlayer}}
 
+% Comment to have the actual, final presentation.  
+\setbeameroption{show notes on second screen}
 
 
 \author{Jacopo De Stefani}
-\title{INFO-H-512 - Current trends in AI}
-\subtitle{[Subject to define] - Presentation}
+\title{Can a computer make us laugh?}
+\subtitle{INFO-H-512 - Current trends in AI}
 \institute{Universite' Libre de Bruxelles}
 
 \begin{document}
@@ -66,10 +71,14 @@
 \titlepage
 \end{frame}
 
-%\include{BodyPresentation}
-\frame{Test}
+\include{BodyPresentation}
+%\frame{Test}
 
-
+\begin{frame}[allowframebreaks]
+         \frametitle{References}
+         \bibliographystyle{alpha}
+         \bibliography{References}
+\end{frame}
 
 
 \end{document}
