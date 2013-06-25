@@ -4,7 +4,9 @@ import getopt
 import sys
 import tweepy
 #import TweetGatherer
+import unicodedata
 import time
+import re
 #import pprint
 
 #Username: oject_
@@ -143,10 +145,10 @@ def main():
     for status in statusList:
         relevantInformations = filterTweet(status)
         #splitRelevantIrrelevant(relevantInformations[u'filtered_text'])
-        tweetsFile.write(relevantInformations[u'text'].encode("utf8") + "\n")
-        filteredTweetsFile.write(relevantInformations[u'filtered_text'].encode("utf8") + "\n")
+        tweetsFile.write(relevantInformations[u'text'] + "\n")
+        filteredTweetsFile.write(relevantInformations[u'filtered_text'] + "\n")
         for hashtag in relevantInformations[u'hashtags']:
-            hashtagsFile.write(hashtag+"\t")
+            hashtagsFile.write(unicodedata.normalize('NFKD',hashtag).encode("ascii",'ignore')+"\t")
         hashtagsFile.write("\n")
 
     if _verbose == 1:
@@ -190,25 +192,24 @@ def filterTweet(status):
     hashtags = []
     relevantInformations = {}
 
-    if len((status.entities)[u'hashtags']) > 0:
-        for hashtag in ((status.entities)[u'hashtags']):
-            partsToRemove.append(hashtag[u'indices'][0])
-            partsToRemove.append(hashtag[u'indices'][1])
-            hashtags.append(hashtag[u'text'])
+    #if len((status.entities)[u'hashtags']) > 0:
+        #for hashtag in ((status.entities)[u'hashtags']):
+            #partsToRemove.append(hashtag[u'indices'][0])
+            #partsToRemove.append(hashtag[u'indices'][1])
+            #hashtags.append(hashtag[u'text'])
 
     if len((status.entities)[u'urls']) > 0:
         for url in ((status.entities)[u'urls']):
             partsToRemove.append(url[u'indices'][0])
             partsToRemove.append(url[u'indices'][1])
 
-    if len((status.entities)[u'user_mentions']) > 0:
-        for user in ((status.entities)[u'user_mentions']):
-            partsToRemove.append(user[u'indices'][0])
-            partsToRemove.append(user[u'indices'][1])
+    #if len((status.entities)[u'user_mentions']) > 0:
+        #for user in ((status.entities)[u'user_mentions']):
+            #partsToRemove.append(user[u'indices'][0])
+            #partsToRemove.append(user[u'indices'][1])
 
     # Clean the tweet content.
     text = status.text
-    text = text.replace(u'^MP', u'')
 
     partsToRemove.append(0)
     partsToRemove.append(len(text))
@@ -223,8 +224,20 @@ def filterTweet(status):
     # Clean the tweet content.
     text = text.replace(u'\xa0', u'')
     text = text.replace(u'&amp', u'')
+    text = text.replace(u'w/', u'with')
+    text = text.replace(u'#',u' #')
+    text = text.replace(u'@',u' @')
     filteredText = filteredText.replace(u'\xa0', u'')
     filteredText = filteredText.replace(u'&amp', u'')
+    filteredText = filteredText.replace(u'w/', u'with')
+    filteredText = filteredText.replace(u'#',u' #')
+    filteredText = filteredText.replace(u'@',u' @')
+
+    text = unicodedata.normalize('NFKD',text).encode("ascii",'ignore')
+    filteredText = unicodedata.normalize('NFKD',filteredText).encode("ascii",'ignore')
+
+    text = re.sub(r'\^[A-Z]+', r'', text)
+    filteredText = re.sub(r'\^[A-Z]+', r'', filteredText)
 
     # Build the object to be returned
     relevantInformations[u'text'] = text

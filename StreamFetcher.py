@@ -4,12 +4,12 @@ __authors__ = 'Jacopo De Stefani (jacopo.de.stefani@ulb.ac.be)\n    Nadine Khouz
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
-from tweepy import Status
-from time import gmtime, strftime
+from time import localtime, strftime
 import json
 import pprint
 import sys
-import argparse
+import re
+import unicodedata
 
 LANG = "en"
 
@@ -51,7 +51,7 @@ class FileListener(StreamListener):
         self.flush_counter = 0
         self.max_flushes = max_flushes
         try:
-            basicFilename = "Stream" + strftime("%d-%m-%Y %H:%M:%S", gmtime())
+            basicFilename = "Stream" + strftime("%d-%m-%Y %H:%M:%S", localtime())
             self.timesFile = open(str(basicFilename) + ".times", "w+")
             self.tweetsFile = open(str(basicFilename) + ".tweets", "w+")
             self.filteredTweetsFile = open(str(basicFilename) + ".filtered", "w+")
@@ -178,8 +178,20 @@ class FileListener(StreamListener):
         # Clean the tweet content.
         text = text.replace(u'\xa0', u'')
         text = text.replace(u'&amp', u'')
+        text = text.replace(u'w/', u'with')
+        text = text.replace(u'#',u' #')
+        text = text.replace(u'@',u' @')
         filteredText = filteredText.replace(u'\xa0', u'')
         filteredText = filteredText.replace(u'&amp', u'')
+        filteredText = filteredText.replace(u'w/', u'with')
+        filteredText = filteredText.replace(u'#',u' #')
+        filteredText = filteredText.replace(u'@',u' @')
+
+        text = unicodedata.normalize('NFKD',text).encode("ascii",'ignore')
+        filteredText = unicodedata.normalize('NFKD',filteredText).encode("ascii",'ignore')
+
+        text = re.sub(r'\^[A-Z]+', r'', text)
+        filteredText = re.sub(r'\^[A-Z]+', r'', filteredText)
 
         # Build the object to be returned
         relevantInformations[u'text'] = text
