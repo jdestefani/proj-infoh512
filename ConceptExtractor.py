@@ -108,57 +108,57 @@ def main():
         print ("[STATUS] - Performing clustering")
 
         print ("[STATUS] - Clustering NOUNS")
-        nounList = relevantWords['noun'].keys()
-        nounLinkageMatrix = PerformClustering(nounList, wordnet.NOUN)
-        PlotDendrogram(str(fileName + ".cluster.noun"), nounList, nounLinkageMatrix)
+        nounList = FilterList(relevantWords['noun'].keys(), wordnet.NOUN)
+        nounLinkageMatrix,nounClusters = PerformClustering(nounList, wordnet.NOUN)
+        PlotDendrogram(str(fileName + ".cluster.noun"),"Nouns Dendrogram", nounList, nounLinkageMatrix)
 
-        print ("[STATUS] - Clustering ADJECTIVES")
-        adjectiveList = relevantWords['adjective'].keys()
-        adjectiveLinkageMatrix = PerformClustering(adjectiveList, wordnet.ADJ)
-        PlotDendrogram(str(fileName + ".cluster.adj"),adjectiveList, adjectiveLinkageMatrix)
+        #print ("[STATUS] - Clustering ADJECTIVES")
+        #adjectiveList = FilterList(relevantWords['adjective'].keys(),wordnet.ADJ)
+        #adjectiveLinkageMatrix,adjectiveClusters = PerformClustering(adjectiveList, wordnet.ADJ)
+        #PlotDendrogram(str(fileName + ".cluster.adj"),"Adjectives Dendrogram",adjectiveList, adjectiveLinkageMatrix)
 
-        print ("[STATUS] - Clustering VERBS")
-        verbList = relevantWords['verb'].keys()
-        verbLinkageMatrix = PerformClustering(verbList, wordnet.VERB)
-        PlotDendrogram(str(fileName + ".cluster.verb"),verbList, verbLinkageMatrix)
+        #print ("[STATUS] - Clustering VERBS")
+        #verbList = FilterList(relevantWords['verb'].keys(), wordnet.VERB)
+        #verbLinkageMatrix,verbClusters = PerformClustering(verbList, wordnet.VERB)
+        #PlotDendrogram(str(fileName + ".cluster.verb"),"Verbs Dendrogram",verbList, verbLinkageMatrix)
 
-        print ("[STATUS] - Clustering ADVERBS")
-        adverbList = relevantWords['adverb'].keys()
-        adverbLinkageMatrix = PerformClustering(adverbList, wordnet.VERB)
-        PlotDendrogram(str(fileName + ".cluster.adv"),adverbList, adverbLinkageMatrix)
+        #print ("[STATUS] - Clustering ADVERBS")
+        #adverbList = FilterList(relevantWords['adverb'].keys(), wordnet.ADV)
+        #adverbLinkageMatrix,adverbClusters = PerformClustering(adverbList, wordnet.ADV)
+        #PlotDendrogram(str(fileName + ".cluster.adv"),"Adverbs Dendrogram",adverbList, adverbLinkageMatrix)
 
 
         print ("[STATUS] - Flushing relevant words")
 
         print ("[STATUS] - Flushing NOUNS")
         for key, value in relevantWords['noun'].items():
-            # NLTK Wordnet access
-            synsets = wordnet.synsets( key , pos=wordnet.NOUN )
-            if len(synsets) > 0:
-                print "Root hypernyms:", synsets[0].root_hypernyms()
+            ## NLTK Wordnet access
+            #synsets = wordnet.synsets( key , pos=wordnet.NOUN )
+            #if len(synsets) > 0:
+                #print "Root hypernyms:", synsets[0].root_hypernyms()
 
             wordsFile.write(str(key) + "\t noun \t" + str(value) + "\n")
 
-        print ("[STATUS] - Flushing ADJECTIVES")
-        for key, value in relevantWords['adjective'].items():
-            synsets = wordnet.synsets( key , pos=wordnet.ADJ )
-            if len(synsets) > 0:
-                print "Root hypernyms:", synsets[0].root_hypernyms()
-            wordsFile.write(str(key) + "\t adjective \t" + str(value) + "\n")
+        #print ("[STATUS] - Flushing ADJECTIVES")
+        #for key, value in relevantWords['adjective'].items():
+            #synsets = wordnet.synsets( key , pos=wordnet.ADJ )
+            #if len(synsets) > 0:
+                #print "Root hypernyms:", synsets[0].root_hypernyms()
+            #wordsFile.write(str(key) + "\t adjective \t" + str(value) + "\n")
 
-        print ("[STATUS] - Flushing VERBS")
-        for key, value in relevantWords['verb'].items():
-            synsets = wordnet.synsets( key , pos=wordnet.VERB )
-            if len(synsets) > 0:
-                print "Root hypernyms:", synsets[0].root_hypernyms()
-            wordsFile.write(str(key) + "\t verb \t" + str(value) + "\n")
+        #print ("[STATUS] - Flushing VERBS")
+        #for key, value in relevantWords['verb'].items():
+            #synsets = wordnet.synsets( key , pos=wordnet.VERB )
+            #if len(synsets) > 0:
+                #print "Root hypernyms:", synsets[0].root_hypernyms()
+            #wordsFile.write(str(key) + "\t verb \t" + str(value) + "\n")
 
-        print ("[STATUS] - Flushing ADVERB")
-        for key, value in relevantWords['adverb'].items():
-            synsets = wordnet.synsets( key , pos=wordnet.ADV )
-            if len(synsets) > 0:
-                print "Root hypernyms:", synsets[0].root_hypernyms()
-            wordsFile.write(str(key) + "\t adverb \t" + str(value) + "\n")
+        #print ("[STATUS] - Flushing ADVERB")
+        #for key, value in relevantWords['adverb'].items():
+            #synsets = wordnet.synsets( key , pos=wordnet.ADV )
+            #if len(synsets) > 0:
+                #print "Root hypernyms:", synsets[0].root_hypernyms()
+            #wordsFile.write(str(key) + "\t adverb \t" + str(value) + "\n")
 
 
         statsFile.close()
@@ -206,80 +206,99 @@ def ComputeDistanceMatrix(wordList,pos):
             else:
                 synset2 = None
             #Actual distance computation
-            if synset1 is None or synset2 is None:
-                distanceMatrix[i,j] = numpy.inf
-            else:
-                # Return a score denoting how similar two word senses are,
-                # based on the shortest path that connects the senses in the is-a (hypernym/hypnoym) taxonomy.
-                # The score is in the range 0 to 1, except in those cases where a path cannot be found
-                # (will only be true for verbs as there are many distinct verb taxonomies), in which case -1 is returned.
-                # A score of 1 represents identity i.e. comparing a sense with itself will return 1.
-                distanceMatrix[i,j] = synset1.path_similarity(synset2)
+            #if synset1 is None or synset2 is None:
+                ##distanceMatrix[i,j] = numpy.inf
+                #distanceMatrix[i,j] = 1.1
+            #else:
+            # Return a score denoting how similar two word senses are,
+            # based on the shortest path that connects the senses in the is-a (hypernym/hypnoym) taxonomy.
+            # The score is in the range 0 to 1, except in those cases where a path cannot be found
+            # (will only be true for verbs as there are many distinct verb taxonomies), in which case -1 is returned.
+            # A score of 1 represents identity i.e. comparing a sense with itself will return 1.
+            #distanceMatrix[i,j] = synset1.path_similarity(synset2)
 
-                # Leacock-Chodorow Similarity:
-                # Return a score denoting how similar two word senses are, based on the shortest path
-                # that connects the senses (as above) and the maximum depth of the taxonomy in which the senses occur.
-                # The relationship is given as -log(p/2d) where p is the shortest path length and d the taxonomy depth.
-                #distanceMatrix[i,j] = synset1.lch_similarity(synset2)
+            # Leacock-Chodorow Similarity:
+            # Return a score denoting how similar two word senses are, based on the shortest path
+            # that connects the senses (as above) and the maximum depth of the taxonomy in which the senses occur.
+            # The relationship is given as -log(p/2d) where p is the shortest path length and d the taxonomy depth.
+            #distanceMatrix[i,j] = synset1.lch_similarity(synset2)
 
 
-                # Wu-Palmer Similarity:
-                # Return a score denoting how similar two word senses are,
-                # Based on the depth of the two senses in the taxonomy and that of their Least Common Subsumer (most specific ancestor node).
-                #distanceMatrix[i,j] = synset1.wup_similarity(synset2)
+            # Wu-Palmer Similarity:
+            # Return a score denoting how similar two word senses are,
+            # Based on the depth of the two senses in the taxonomy and that of their Least Common Subsumer (most specific ancestor node).
+            distanceMatrix[i,j] = synset1.wup_similarity(synset2)
 
-                # Resnik Similarity:
-                # Return a score denoting how similar two word senses are, based on the Information Content (IC) of the Least Common Subsumer (most specific ancestor node).
-                # Note that for any similarity measure that uses information content, the result is dependent on the corpus
-                # used to generate the information content and the specifics of how the information content was created.
-                #distanceMatrix[i,j] = synset1.res_similarity(synset2, brown_ic)
+            # Resnik Similarity:
+            # Return a score denoting how similar two word senses are, based on the Information Content (IC) of the Least Common Subsumer (most specific ancestor node).
+            # Note that for any similarity measure that uses information content, the result is dependent on the corpus
+            # used to generate the information content and the specifics of how the information content was created.
+            #distanceMatrix[i,j] = synset1.res_similarity(synset2, brown_ic)
 
-                #Jiang-Conrath Similarity
-                # Return a score denoting how similar two word senses are,
-                # based on the Information Content (IC) of the Least Common Subsumer (most specific ancestor node) and
-                # that of the two input Synsets.
-                # The relationship is given by the equation 1 / (IC(s1) + IC(s2) - 2 * IC(lcs)).
-                #distanceMatrix[i,j] = synset1.jcn_similarity(synset2, brown_ic)
+            #Jiang-Conrath Similarity
+            # Return a score denoting how similar two word senses are,
+            # based on the Information Content (IC) of the Least Common Subsumer (most specific ancestor node) and
+            # that of the two input Synsets.
+            # The relationship is given by the equation 1 / (IC(s1) + IC(s2) - 2 * IC(lcs)).
+            #distanceMatrix[i,j] = synset1.jcn_similarity(synset2, brown_ic)
 
-                # Lin Similarity: Return a score denoting how similar two word senses are,
-                # based on the Information Content (IC) of the Least Common Subsumer (most specific ancestor node)
-                # and that of the two input Synsets.
-                # The relationship is given by the equation 2 * IC(lcs) / (IC(s1) + IC(s2)).
-                #distanceMatrix[i,j] = synset1.lin_similarity(synset2, brown_ic)
+            # Lin Similarity: Return a score denoting how similar two word senses are,
+            # based on the Information Content (IC) of the Least Common Subsumer (most specific ancestor node)
+            # and that of the two input Synsets.
+            # The relationship is given by the equation 2 * IC(lcs) / (IC(s1) + IC(s2)).
+            #distanceMatrix[i,j] = synset1.lin_similarity(synset2, brown_ic)
 
     return distanceMatrix
 
 def PerformClustering(wordList,pos):
-
+    clusters = {}
     # Compute distance matrix using wordnet similarity measures
+    print ("[STATUS] - [CLUSTER] Computing distance matrix")
     distanceMatrix = ComputeDistanceMatrix(wordList,pos)
     # Performs hierarchical/agglomerative clustering on the given condensed distance matrix y
-    linkageMatrix = scipy.cluster.hierarchy.linkage( distanceMatrix, 'single' )
-    #Z = scipy.cluster.hierarchy.linkage( distanceMatrix, 'complete' )
-    #Z = scipy.cluster.hierarchy.linkage( distanceMatrix, 'average' )
-    #Z = scipy.cluster.hierarchy.linkage( distanceMatrix, 'weighted' )
-    #Z = scipy.cluster.hierarchy.linkage( distanceMatrix, 'centroid' )
-    #Z = scipy.cluster.hierarchy.linkage( distanceMatrix, 'ward' )
+    print ("[STATUS] - [CLUSTER] Computing linkage matrix")
+    #linkageMatrix = scipy.cluster.hierarchy.linkage(distanceMatrix, 'single')
+    #linkageMatrix = scipy.cluster.hierarchy.linkage( distanceMatrix, 'complete' )
+    #linkageMatrix = scipy.cluster.hierarchy.linkage( distanceMatrix, 'average' )
+    #linkageMatrix = scipy.cluster.hierarchy.linkage( distanceMatrix, 'weighted' )
+    #linkageMatrix = scipy.cluster.hierarchy.linkage( distanceMatrix, 'centroid' )
+    linkageMatrix = scipy.cluster.hierarchy.linkage( distanceMatrix, 'ward')
 
-    #clusterLabels = scipy.cluster.hierarchy.fcluster( linkageMatrix )
+    print linkageMatrix
+
+    clusterLabels = scipy.cluster.hierarchy.fcluster(linkageMatrix, 20 , criterion='distance')
+    for i in range(len(wordList)):
+        if not clusters.has_key(clusterLabels[i]):
+            clusters[clusterLabels[i]] = []
+        clusters[clusterLabels[i]].append(wordList[i])
+
+    print clusters
     #clusters = clusterlists(T)
-    return linkageMatrix
+    return linkageMatrix,clusters
 
-def PlotDendrogram(filename,wordList,linkageMatrix):
+def PlotDendrogram(filename,title,wordList,linkageMatrix):
 
     figure = matplotlib.pyplot.figure()
-    matplotlib.pyplot.xlabel('Words')
+    figure.subplots_adjust(bottom=0.2)
     matplotlib.pyplot.ylabel('Distance')
-    matplotlib.pyplot.title('Dendrogram of X')
+    matplotlib.pyplot.title(title)
     scipy.cluster.hierarchy.dendrogram(linkageMatrix,
                                        color_threshold=1,
-                                       truncate_mode='lastp',
                                        labels=numpy.array(wordList),
                                        distance_sort='ascending',
-                                       leaf_label_rotation=90)
+                                       leaf_rotation=90)
+
     pp = PdfPages(str(filename) + '.pdf')
     pp.savefig(figure)
     pp.close()
+
+def FilterList(wordList,pos):
+    filteredList = []
+    for word in wordList:
+        synsets = wordnet.synsets(word, pos=pos)
+        if len(synsets) > 0:
+            filteredList.append(word)
+    return filteredList
 
 ###############################################################################
 
