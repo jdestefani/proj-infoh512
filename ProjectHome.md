@@ -1,0 +1,1 @@
+Project for the course: INFO-H-512 - Current Trends in Artificial Intelligence
